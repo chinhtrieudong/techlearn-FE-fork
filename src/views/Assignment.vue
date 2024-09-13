@@ -77,7 +77,7 @@ const totalLessons = ref(0);
 const fetchCourseData = async () => {
     const courseId = route.params.id;
     try {
-        const response = await axios.get(`/api/v1/chapters/${courseId}`);
+        const response = await axios.get(`/api/v1/assignments/${courseId}`);
         courseData.value = response.data;
 
         filteredChapters.value = courseData.value.chapters;
