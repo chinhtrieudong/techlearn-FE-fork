@@ -20,8 +20,8 @@ import CourseDetailPage from "@/views/CourseDetailPage.vue";
 
 const routes = [
   {
-    path: "/",
-    name: "StudentList",
+    path: "/Students",
+    name: "studentList",
     component: Students,
   },
   {
@@ -75,7 +75,7 @@ const routes = [
     props: true,
   },
   {
-    path: "/coursePage",
+    path: "/",
     name: "coursePage",
     component: CoursePage,
     props: true,

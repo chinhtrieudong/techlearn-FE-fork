@@ -51,19 +51,24 @@
               }}
               {{ dataCourse.course.currencyUnit }}
             </p>
-            <div class="d-grid gap-2 d-md-block" v-if="studentCourse?.status === ''">
-              <button
-                class="btn btn-primary custom-button btn-buy w-40"
-                type="button"
-                @click="handleRegisterCourse"
-                :disabled="isLoadingBuy"
-              >
-                <!-- <span v-if="isLoadingBuy">
+            <div class="d-grid gap-2 d-md-block" v-if="studentCourse?.status === 'UNPAID'">
+              <button class="btn btn-primary custom-button btn-buy w-40"
+                @click.stop="handleBuyCourse(dataCourse.course.id)" type="button" :disabled="isLoadingBuy">
+                <span v-if="isLoadingBuy">
                   <div class="spinner"></div>
-                </span> -->
-                <span >Đăng ký học thử </span>
+                </span>
+                <span>Mua khóa học</span>
               </button>
             </div>
+            <!-- <div class="d-grid gap-2 d-md-block" v-if="studentCourse?.status === ''">
+              <button class="btn btn-primary custom-button btn-buy w-40" type="button" @click="handleRegisterCourse"
+                :disabled="isLoadingBuy"> -->
+            <!-- <span v-if="isLoadingBuy">
+                  <div class="spinner"></div>
+                </span> -->
+            <!-- <span>Đăng ký học thử </span>
+              </button>
+            </div> -->
             <!-- <div class="d-grid gap-2 d-md-block">
               <button
                 class="btn btn-primary custom-button btn-buy w-40"
@@ -199,7 +204,7 @@ const router = useRouter();
 const route = useRoute();
 const store = useStore();
 const rootApi = process.env.VUE_APP_ROOT_API;
-const userID = computed(() => store.getters.user);
+const userInfo = computed(() => store.getters.user);
 const courseId = route.params.id;
 
 const courseData = ref();
@@ -212,7 +217,7 @@ const dataCourse = reactive({
   course: {},
 });
 
-const studentCourse = reactive({status:''});
+const studentCourse = reactive({ status: '' });
 
 const totalLessons = ref(0);
 
@@ -221,6 +226,8 @@ const fetchCourseData = async () => {
     const response = await axios.get(
       `${rootApi}/chapters?idCourse=${courseId}`
     );
+    console.log("response", response);
+
     courseData.value = response.data.result.data;
 
     filteredChapters.value = courseData.value;
@@ -267,7 +274,7 @@ const fetchStudentCourses = async () => {
     const response = await axios.get(`${rootApi}/student-courses/user`, {
       params: {
         idCourse: courseId,
-        idUser: userID.value.id,
+        idUser: userInfo.value.id,
       },
     });
     Object.assign(studentCourse, response.data.result);
@@ -313,11 +320,41 @@ const isOtherStatus = computed(
 );
 
 const goToAssignmentDetail = (id) => {
+  if (!userInfo.value) {
+    toast.error('Please log in to access this content.');
+    router.push('/login');
+    return;
+  }
+
+  if (studentCourse.status !== 'PAID' && studentCourse.status !== 'TRIAL') {
+    toast.error('Bạn cần mua khóa học để truy cập nội dung.');
+    return;
+  }
+
   router.push({
     name: 'submitAssignment',
     params: { id: id },
     query: { studentCourse: JSON.stringify(studentCourse) }
   });
+};
+
+const handleBuyCourse = async (idCourse) => {
+
+  console.log(idCourse, userInfo.value.id);
+  const userId = userInfo.value.id;
+  try {
+    isLoadingBuy.value = true;
+    const response = await axios.post(
+      `${rootApi}/buy_course?idUser=${userId}&idCourse=${idCourse}`
+    );
+    toast.success("Mua khóa học thành công!!");
+    await fetchStudentCourses();
+  } catch (error) {
+    console.error("Error buying course:", error);
+    toast.error("Có lỗi xảy ra");
+  } finally {
+    isLoadingBuy.value = false;
+  }
 };
 
 onMounted(async () => {
@@ -329,35 +366,13 @@ onMounted(async () => {
   ]);
 });
 
-// const handleBuyCourse = async () => {
-//   try {
-//     isLoadingBuy.value = true;
-//     const response = await axios.post(
-//       `${rootApi}/buy_course?idUser=${userID.value.id}&idCourse=${dataCourse.course.id}`
-//     );
-//     store.dispatch("fetchSupportPoints", userID.value.id);
-//     toast.success("Mua khóa học thành công!!");
-//     await Promise.all([
-//       fetchCourseData(),
-//       fetchLessons(),
-//       fetchCourse(),
-//       fetchStudentCourses(),
-//     ]);
-//   } catch (error) {
-//     console.log(error);
-//     toast.error("Có lỗi xảy ra");
-//   } finally {
-//     isLoadingBuy.value = false;
-//   }
-// };
-
 const handleRegisterCourse = async () => {
   try {
     isLoadingTrial.value = true;
     const response = await axios.post(
-      `${rootApi}/register_trials?idUser=${userID.value.id}&idCourse=${dataCourse.course.id}`
+      `${rootApi}/register_trials?idUser=${userInfo.value.id}&idCourse=${dataCourse.course.id}`
     );
-    store.dispatch("fetchSupportPoints", userID.value.id);
+    store.dispatch("fetchSupportPoints", userInfo.value.id);
     toast.success("Đăng kí dùng thử khóa học thành công!!");
     await Promise.all([
       fetchCourseData(),

@@ -3,12 +3,12 @@
     <h1>Cập nhật</h1>
     <div class="form-group">
       <label for="fullName">Name:</label>
-      <input id="fullName" v-model="fullName" type="text" class="form-input" placeholder="Hãy Nhập Tên"/>
+      <input id="fullName" v-model="fullName" type="text" class="form-input" placeholder="Hãy Nhập Tên" />
       <span class="form-error">{{ nameError }}</span>
     </div>
     <div class="form-group">
       <label for="age">Age:</label>
-      <input id="age" v-model="age" type="number" class="form-input" placeholder="Hãy Nhập Tuổi"  />
+      <input id="age" v-model="age" type="number" class="form-input" placeholder="Hãy Nhập Tuổi" />
       <span class="form-error">{{ ageError }}</span>
     </div>
     <button type="submit" class="form-submit">Submit</button>
@@ -30,16 +30,16 @@ const route = useRoute();
 const { handleSubmit, resetForm } = useForm({
   validationSchema: yup.object({
     fullName: yup
-    .string()
-    .required("*Hãy nhập tên")
-    .matches(/^[\p{L}\s]+$/u, "*Chỉ chứa kí tự chữ và khoảng trắng"),
+      .string()
+      .required("*Hãy nhập tên")
+      .matches(/^[\p{L}\s]+$/u, "*Chỉ chứa kí tự chữ và khoảng trắng"),
     age: yup
       .number()
       .typeError('*Phải là số')
-  
+
       .required('*Hãy nhập tuổi')
       .min(16, "*Tuổi phải lớn hơn 16")
-      .max(70,"*Tuổi bé lớn hơn 70"),
+      .max(70, "*Tuổi bé lớn hơn 70"),
   }),
 });
 
@@ -64,7 +64,6 @@ const onSubmit = handleSubmit(async (values) => {
   try {
     const response = await axios.put(`${rootApi}/api/v1/users/${studentId}`, values);
     if (response.status === 200) {
-      console.log(values)
       resetForm();
       router.push("/").then(() => {
         toast.success("Cập nhật thành công!", {

@@ -1,107 +1,53 @@
 <template>
   <div class="container">
     <p class="title">Khóa học của tôi</p>
-    <div class="card-container relative">
-      <div class="card relative shadow card-hover" v-for="(studentCourse, index) in student_courses" :key="index"
-        style="width: 18rem">
-        <template v-if="getCourseDetails(studentCourse.idCourse)">
-          <p class="trying p-1" v-if="studentCourse.status === 'TRIAL'">
-            Đang học thử
-          </p>
-          <img :src="getCourseDetails(studentCourse.idCourse).thumbnailUrl" class="card-img-top" alt="..." />
-          <div class="card-body p-3" @click="navigateToAssignment(studentCourse.idCourse)">
-            <h5>{{ getCourseDetails(studentCourse.idCourse)?.name }}</h5>
-            <p class="course-des card-text">
-              {{ getCourseDetails(studentCourse.idCourse)?.description }}
-            </p>
-          </div>
-          <div class="c-footer py-1">
-            <img class="avatar" :src="avatar" alt="" />
-            <p class="my-auto">
-              {{
-                getCourseDetails(studentCourse.idCourse).teacher.length > 1
-                  ? getCourseDetails(studentCourse.idCourse).teacher[0]?.name +
-                  "..."
-                  : getCourseDetails(studentCourse.idCourse).teacher[0]?.name
-              }}
-            </p>
-          </div>
-          <div v-if="loadingStates[index]" class="d-flex justify-content-center pb-3">
-            <div class="spinner"></div>
-          </div>
-          <button v-else class="btn btn-primary mx-3 my-2 btn-buy"
-            @click="navigateToAssignment(studentCourse.idCourse)">
-            <!-- @click="handleClick(studentCourse, index)" -->
-            <!-- {{ studentCourse.status === "PAID" ? "Học" : "Mua" }} -->
-            Học
-          </button>
-        </template>
+    <div class="row">
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 col-12 mb-4" v-for="(item, index) in myCourses" :key="index">
+        <CourseCard :course="item" :loadingState="loadingStates[index]"
+          :truncatedDescriptions="truncatedDescriptions" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import CourseCard from "@/components/Course/CourseCard.vue";
 import axios from "axios";
 import { ref, onMounted, computed } from "vue";
-import avatar from "../../public/avatar.jpg";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { toast } from "vue3-toastify";
 
 const router = useRouter();
 const store = useStore();
 
 const rootApi = process.env.VUE_APP_ROOT_API;
-const courses = ref([]);
-const student_courses = ref([]);
+const myCourses = ref([]);
 const loadingStates = ref([]);
 const userID = computed(() => store.getters.user);
 
-const fetchStudentCourses = async () => {
-  const res = await axios.get(
-    `${rootApi}/student-courses?id=${userID.value.id}`
-  );
-  student_courses.value = res.data.result;
-  loadingStates.value = Array(student_courses.value.length).fill(false);
+const fetchMyCourses = async (page = 1, pageSize = 30) => {
+  try {
+    const response = await axios.get(`${rootApi}/courses/user`, {
+      params: {
+        page: page,
+        pageSize: pageSize,
+        id: userID.value.id,
+      },
+    });
+
+    myCourses.value = response.data.result.items.data || [];
+    console.log("myCourses -->", myCourses.value);
+  } catch (error) {
+    console.error("Failed to fetch courses:", error);
+  }
 };
 
-const fetchCourses = async () => {
-  const response = await axios.get(`${rootApi}/courses?id=${userID.value.id}`);
-  courses.value = response.data.result.data.items;
+const truncatedDescriptions = (description) => {
+  return description.length > 120 ? description.substring(0, 120) + "..." : description;
 };
-
-const getCourseDetails = (idCourse) => {
-  return courses.value.find((course) => course.id === idCourse);
-};
-
-const navigateToAssignment = (courseId) => {
-  router.push({
-    name: "courseDetail",
-    params: { id: courseId },
-  });
-};
-
-// const handleClick = async (studentCourse, index) => {
-//   try {
-//     loadingStates.value[index] = true;
-//     if (studentCourse.status === "TRIAL") {
-//       const response = await axios.post(
-//         `${rootApi}/buy_course?idUser=${userID.value.id}&idCourse=${studentCourse.idCourse}`
-//       );
-//       await fetchStudentCourses();
-//       toast.success("Mua khóa học thành công!");
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   } finally {
-//     loadingStates.value[index] = false;
-//   }
-// };
 
 onMounted(async () => {
-  await fetchCourses();
-  await fetchStudentCourses();
+  await fetchMyCourses();
 });
 </script>
 

@@ -6,26 +6,34 @@
       </div>
       <ul class="list-unstyled components">
         <li v-if="isTeacher || isMentor" @click="changeActive(1)">
-          <router-link to="/teacher" :class="isActive == 1 ? 'nav-link active' : 'nav-link'" exact>Lịch cá
-            nhân</router-link>
+          <router-link to="/teacher" :class="isActive == 1 ? 'nav-link active' : 'nav-link'" exact>
+            <FontAwesomeIcon icon="calendar-alt" class="me-2" />
+            Lịch cá nhân
+          </router-link>
         </li>
         <!-- <li v-if="isUser">
-          <router-link to="/student" class="nav-link">Đặt lịch học</router-link>
+          <router-link to="/student" class="nav-link">
+            <FontAwesomeIcon icon="calendar-check" class="me-2" />
+            Đặt lịch học
+          </router-link>
         </li> -->
         <li v-if="isTeacher" @click="changeActive(2)">
           <router-link to="/listPrompt" :class="isActive == 2 ? 'nav-link active router-link-active' : 'nav-link'"
-            exact>Cấu
-            hình
-            AI</router-link>
+            exact>
+            <FontAwesomeIcon icon="cogs" class="me-2" />
+            Cấu hình AI
+          </router-link>
         </li>
         <li v-if="isUser" @click="changeActive(3)">
-          <router-link to="/coursePage" :class="isActive == 3 ? 'nav-link active router-link-active' : 'nav-link'"
-            exact>Khóa
-            học</router-link>
+          <router-link to="/" :class="isActive == 3 ? 'nav-link active router-link-active' : 'nav-link'" exact>
+            <FontAwesomeIcon icon="book-open" class="me-2" />
+            Khóa học
+          </router-link>
         </li>
         <li v-if="isUser" @click="changeActive(4)">
           <router-link to="/myCoursePage" :class="isActive == 4 ? 'nav-link active router-link-active' : 'nav-link'"
             exact>
+            <FontAwesomeIcon icon="book" class="me-2" />
             Khóa học của tôi
           </router-link>
         </li>
@@ -38,6 +46,7 @@
 import { onMounted, ref, computed } from "vue";
 import { inject } from "vue";
 import { useStore } from "vuex";
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const isSidebarCollapsed = inject("isSidebarCollapsed");
 const store = useStore();
@@ -61,7 +70,6 @@ const isUser = computed(() =>
 const isMentor = computed(() =>
   user.value?.roles.some((role) => role.name === "MENTOR")
 );
-
 
 const changeActive = (value) => {
   isActive.value = value;

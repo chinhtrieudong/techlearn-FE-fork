@@ -142,9 +142,6 @@ const openModal = async () => {
   modal.show();
   result.value.splice(0, result.value.length);
   try {
-    console.log(userID.value.id);
-    console.log(assignmentId);
-
     const response = await axios.get(
       `${rootApi}/reviews?id=${userID.value.id}&assignment=${assignmentId}&pageSize=30`
     );
@@ -241,7 +238,7 @@ onMounted(async () => {
   await fetchAssignments();
   await fetchLastResult();
   if (route.query.studentCourse) {
-    Object.assign(studentCourse, JSON.parse(route.query.studentCourse)); 
+    Object.assign(studentCourse, JSON.parse(route.query.studentCourse));
     console.log("StudentCourse:", studentCourse);
     console.log("Status:", studentCourse.status);
   }
